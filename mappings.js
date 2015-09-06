@@ -31,49 +31,47 @@ module.exports = function(elasticClient, index) {
 	},
 	function(error, response) {
 	    if (error) {
-		if (error.status === 404) {
+		console.error(error);
+	    } else if (!response) {
+		
+		elasticClient.indices.create(
+		    {
+			index: index,
+			body: {
+			    settings: {},
+			    mappings: {
+				snapshot: {
+				    properties: {
+					collection: stringType,
+					doc: stringType,
+					// This is the ot type, see [https://github.com/ottypes]
+					type: stringType,
+					data: arbitraryObjType
+				    }
+				},
 
-		    elasticClient.indices.create(
-			{
-			    index: index,
-			    body: {
-				settings: {},
-				mappings: {
-				    snapshot: {
-					properties: {
-					    collection: stringType,
-					    doc: stringType,
-					    // This is the ot type, see [https://github.com/ottypes]
-					    type: stringType,
-					    data: arbitraryObjType
-					}
-				    },
-
-				    op: {
-					properties: {
-					    collection: stringType,
-					    doc: stringType,
-					    v: intType,
-					    src: arbitraryObjType,
-					    seq: intType,
-					    meta: arbitraryObjType,
-					    op: arbitraryObjType,
-					    del: boolType,
-					    create: arbitraryObjType
-					}
+				op: {
+				    properties: {
+					collection: stringType,
+					doc: stringType,
+					v: intType,
+					src: arbitraryObjType,
+					seq: intType,
+					meta: arbitraryObjType,
+					op: arbitraryObjType,
+					del: boolType,
+					create: arbitraryObjType
 				    }
 				}
 			    }
-			},
-			function(error, response) {
-			    if (error) {
-				console.error(error);
-			    }
 			}
-		    );
-		} else {
-		    console.error(error);
-		}
+		    },
+		    function(error, response) {
+			if (error) {
+			    console.error(error);
+			}
+		    }
+		);
 	    }
 	}
     );
