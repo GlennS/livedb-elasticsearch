@@ -1,0 +1,41 @@
+* LiveDB ElasticSearch
+ElasticSearch adapter for [[https://github.com/share/livedb][LiveDB]].
+
+Implements the collections and oplog APIs, but not the query API.
+
+We make a single index in ElasticSearch. Snapshots and operations are stored as different /types/. Different 'collections' are distinguished by a =collection= field.
+
+** Deletions
+Deletes in liveDB do not map to deletes in ElasticSearch. Instead, we insert a 'delete' operation for that document and replace its snapshot with a deleted marker.
+
+** Versions
+We use ElasticSearch versions for snapshots, so these get replaced.
+
+We do not use ElasticSearch versions for ops, because we want to keep them around forever. Each op gets a unique id including its version number, and should never be updated or deleted.
+
+** Dependencies
+ + ElasticSearch v1.7.x
+ + NodeJS
+ + The npm files listed in package.json
+
+** Usage
+#+BEGIN_SRC js2
+  "use strict";
+
+  /*global module, require*/
+
+  var liveDBElasticFactory = require("livedb-elasticsearch"),
+      liveDBElastic = liveDBElasticFactory(
+          "http://localhost:9200", // The default ElasticSearch location
+          "livedb" // Index to write documents into.
+      ),
+
+      liveDB = require("livedb").client(liveDBElastic);
+
+  // From this point, follow the livedb documentation.
+#+END_SRC
+
+** Demo
+I haven't made a demo yet.
+
+I'd like it to perform the role of tests.

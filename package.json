@@ -1,0 +1,22 @@
+{
+    "name": "livedb-elasticsearch",
+    "version": "0.1.0",
+    "description": "ElasticSearch adapter for LiveDB",
+    "main": "index.js",
+
+    "keywords": ["livedb", "search", "ElasticSearch"],
+    
+    "url": "https://github.com/glenns/livedb-elasticsearch",
+    "license": "MIT",
+    "repository": {
+	"type": "git",
+	"url": "git://github.com/glenns/livedb-elasticsearch.git"
+    },
+
+    "devDependencies": {	
+    },
+    
+    "dependencies": {
+	"elasticsearch": "8.0.1"
+    }
+}
