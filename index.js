@@ -1,4 +1,4 @@
-c"use strict";
+"use strict";
 
 /*global module, require*/
 
