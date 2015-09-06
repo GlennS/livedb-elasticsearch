@@ -1,9 +1,9 @@
-"use strict";
+c"use strict";
 
 /*global module, require*/
 
 var elasticSearch = require('elasticsearch'),
-    apiVersion = 1.7,
+    apiVersion = "1.7",
 
     snapshotType = 'snapshot',
     opType = 'op';
