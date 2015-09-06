@@ -297,11 +297,11 @@ module.exports = function(host, index) {
 			body: {
 			    query: {
 				filtered: {
-				    filter: matchColl(collection)
-				},
-				query: {
-				    match: {
-					doc: searchTerm
+				    filter: matchColl(collection),
+				    query: {
+					match: {
+					    doc: searchTerm
+					}
 				    }
 				}
 			    }
