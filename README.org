@@ -5,6 +5,19 @@ Implements the collections and oplog APIs, but not the query API.
 
 We make a single index in ElasticSearch. Snapshots and operations are stored as different /types/. Different 'collections' are distinguished by a =collection= field.
 
+** Extra Functions
+In addition to the LiveDB API, we also provide following functions.
+
+*** titleSearch
+Search for a snapshot in a collection based on the title field.
+
+Takes parameters:
+ + collection
+ + searchTerm
+ + callback
+
+The callback will be called with (error, listOfHits).
+
 ** Deletions
 Deletes in liveDB do not map to deletes in ElasticSearch. Instead, we insert a 'delete' operation for that document and replace its snapshot with a deleted marker.
 

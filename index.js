@@ -280,8 +280,34 @@ module.exports = function(host, index) {
 		    },
 		    searchCallback(callback)
 		);
+	    },
+
+	    /*
+	     Not part of the liveDB API.
+
+	     Search for a document with a title matching our query.
+	     */
+	    titleSearch: function(collection, searchTerm, callback) {
+		client.search(
+		    {
+			index: index,
+			type: snapshotType,
+			body: {
+			    query: {
+				filtered: {
+				    filter: matchColl(collection)
+				},
+				query: {
+				    match: {
+					doc: searchTerm
+				    }
+				}
+			    }
+			}
+		    },
+		    searchCallback(callback)
+		);
 	    }
-	    
 	};
 
     return m;
