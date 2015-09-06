@@ -6,7 +6,9 @@ var elasticSearch = require('elasticsearch'),
     apiVersion = "1.7",
 
     snapshotType = 'snapshot',
-    opType = 'op';
+    opType = 'op',
+
+    mappings = require("./mappings.js");
 
 module.exports = function(host, index) {
     index = index || 'livedb';
@@ -309,6 +311,8 @@ module.exports = function(host, index) {
 		);
 	    }
 	};
+
+    mappings(client, index);
 
     return m;
 };
