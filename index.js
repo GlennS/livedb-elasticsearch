@@ -95,7 +95,11 @@ module.exports = function(host, index) {
 		    },
 		    function(error, response) {
 			if (error) {
-			    callback(error, null);
+			    if (error.status === '404') {
+				callback(null, null);
+			    } else {
+				callback(error, null);
+			    }
 			} else {
 			    callback(
 				null,
