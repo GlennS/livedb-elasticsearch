@@ -13,7 +13,9 @@
 	"url": "git://github.com/glenns/livedb-elasticsearch.git"
     },
 
-    "devDependencies": {	
+    "devDependencies": {
+	"tape-catch": "1.0.3",
+	"tape": "4.2.0"
     },
     
     "dependencies": {

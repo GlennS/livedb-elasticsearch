@@ -8,9 +8,9 @@ var elasticSearch = require('elasticsearch'),
     snapshotType = 'snapshot',
     opType = 'op',
 
-    mappings = require("./mappings.js");
+    mappingsFactory = require("./mappings.js");
 
-module.exports = function(host, index) {
+module.exports = function(host, index, dontInitializeMappings) {
     index = index || 'livedb';
 
     var client = new elasticSearch.Client({
@@ -18,6 +18,8 @@ module.exports = function(host, index) {
 	apiVersion: apiVersion,
 	suggestCompression: true
     }),
+
+	mappings = mappingsFactory(client, index),
 
 	makeSnapshotId = function(collection, doc) {
 	    return collection + "-" + doc + "-snapshot";
@@ -81,6 +83,26 @@ module.exports = function(host, index) {
 		    m.closed = true;
 		    client.close();
 		}
+	    },
+
+	    /*
+	     Tells us the health of the cluster.
+
+	     Returns error, red, yellow or green.
+	     */
+	    up: function(callback) {
+		client.cat.health(
+		    {},
+		    function(error, response) {
+			if (error) {
+			    callback(error, response);
+			} else {
+			    var colour = response.split(' ')[3];
+			    callback(null, colour);
+			}
+		    }
+		);
+		
 	    },
 
 	    /*
@@ -240,10 +262,11 @@ module.exports = function(host, index) {
 	     The version of a document is its most recent op + 1.
 	     */
 	    getVersion: function(collection, doc, callback) {
-		client.count(
+		client.search(
 		    {
 			index: index,
 			type: opType,
+			size: 0,
 			body: {
 			    query: {
 				filtered: {
@@ -271,7 +294,11 @@ module.exports = function(host, index) {
 			if (error) {
 			    callback(error, null);
 			} else {
-			    callback(null, response.aggregations.version);
+			    if (response.hits.total === 0) {
+				callback(null, 0);
+			    } else {
+				callback(null, response.aggregations.version.value + 1);
+			    }
 			}
 		    }
 		);
@@ -287,26 +314,64 @@ module.exports = function(host, index) {
 			type: opType,
 			body: {
 			    sort: {
-				v: {
-				    order: 'asc'
-				}
+			    	v: {
+			    	    order: 'asc'
+			    	}
 			    },
 			    query: {
-				filtered: {
-				    filter: {
-					bool: {
-					    must: [
-						matchColl(collection),
-						matchDoc(doc),
-						versionRange(start, end)
-					    ]
-					}
-				    }
-				}
+			    	filtered: {
+			    	    filter: {
+			    		bool: {
+			    		    must: [
+			    			matchColl(collection),
+			    			matchDoc(doc),
+			    			versionRange(start, end)
+			    		    ]
+			    		}
+			    	    }
+			    	}
 			    }
 			}
 		    },
-		    searchCallback(callback)
+		    function(error, response) {
+			if (error) {
+			    callback(error, response);
+			} else {
+			    callback(
+				null,
+				response.hits.hits.map(function(hit) {
+				    var op = hit._source;
+				    
+				    var result = {
+					v: op.v,
+					src: op.src,
+					seq: op.seq
+				    };
+
+				    if (op.meta) {
+					result.meta = JSON.parse(op.meta);
+				    }
+
+				    if (op.op) {
+					result.op = JSON.parse(op.op);
+				    }
+
+				    if (op.create) {
+					result.create = {
+					    type: op.create.type,
+					    data: JSON.parse(op.create.data)
+					};
+				    }
+
+				    if (op.del) {
+					result.del = op.del;
+				    }
+
+				    return result;
+				})
+			    );
+			}
+		    }
 		);
 	    },
 
@@ -335,10 +400,15 @@ module.exports = function(host, index) {
 		    },
 		    searchCallback(callback)
 		);
-	    }
+	    },
+
+	    ensureMappingsCreated: mappings.ensureCreated,
+	    deleteMappings: mappings.delete
 	};
 
-    mappings(client, index);
+    if (!dontInitializeMappings) {
+	mappings.ensureCreated();
+    }
 
     return m;
 };

@@ -48,7 +48,7 @@ We do not use ElasticSearch versions for ops, because we want to keep them aroun
   // From this point, follow the livedb documentation.
 #+END_SRC
 
-** Demo
-I haven't made a demo yet.
+** Tests
+First install tap-spec, which prettifies the outputs =sudo npm install -g tap-spec=, then run =make tests=.
 
-I'd like it to perform the role of tests.
+See [[file:tests.org][tests.org]] for plans for tests to write.

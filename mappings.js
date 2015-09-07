@@ -25,60 +25,85 @@ module.exports = function(elasticClient, index) {
 	    index: "no"
 	};
 
-    elasticClient.indices.exists(
-	{
-	    index: index
+    return {
+	delete: function(callback) {
+	    elasticClient.indices.exists(
+		{
+		    index: index
+		},
+		function(error, response) {
+		    if (error) {
+			callback(error, response);
+		    } else if (response) {
+			elasticClient.indices.delete(
+			    {
+				index: index
+			    },
+			    callback
+			);
+		    } else {
+			callback(null, false);
+		    }
+		}
+	    );
 	},
-	function(error, response) {
-	    if (error) {
-		console.error(error);
-	    } else if (!response) {
-		
-		elasticClient.indices.create(
-		    {
-			index: index,
-			body: {
-			    settings: {},
-			    mappings: {
-				snapshot: {
-				    properties: {
-					collection: stringType,
-					doc: stringType,
-					// This is the ot type, see [https://github.com/ottypes]
-					type: stringType,
-					data: arbitraryObjType
-				    }
-				},
 
-				op: {
-				    properties: {
-					collection: stringType,
-					doc: stringType,
-					v: intType,
-					src: arbitraryObjType,
-					seq: intType,
-					meta: arbitraryObjType,
-					op: arbitraryObjType,
-					del: boolType,
-					create: {
-					    type: "object",
+	ensureCreated: function(callback) {
+	    elasticClient.indices.exists(
+		{
+		    index: index
+		},
+		function(error, response) {
+		    if (error) {
+			callback(error, response);
+			
+		    } else if (!response) {
+			
+			elasticClient.indices.create(
+			    {
+				index: index,
+				body: {
+				    settings: {},
+				    mappings: {
+					snapshot: {
 					    properties: {
+						collection: stringType,
+						doc: stringType,
+						// This is the ot type, see [https://github.com/ottypes]
 						type: stringType,
 						data: arbitraryObjType
+					    }
+					},
+
+					op: {
+					    properties: {
+						collection: stringType,
+						doc: stringType,
+						v: intType,
+						src: arbitraryObjType,
+						seq: intType,
+						meta: arbitraryObjType,
+						op: arbitraryObjType,
+						del: boolType,
+						create: {
+						    type: "object",
+						    properties: {
+							type: stringType,
+							data: arbitraryObjType
+						    }
+						}
 					    }
 					}
 				    }
 				}
-			    }
-			}
-		    },
-		    function(error, response) {
-			if (error) {
-			    console.error(error);
-			}
+			    },
+			    callback
+			);
+		    } else {
+			callback(null, false);
 		    }
-		);
-	    }
+		}
+	    );
 	}
-    );
+    };
 };
