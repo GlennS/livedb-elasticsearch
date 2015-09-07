@@ -45,6 +45,8 @@ var coll = "coll",
      Ops are identical except for a timestamp.
     */
     validateOp = function(t, actual, expected, message) {
+	t.true(actual.timestamp, 'op should have a timestamp');
+	
 	delete actual.timestamp;
 	t.deepEquals(actual, expected, message);
     };
@@ -72,7 +74,7 @@ module.exports = function(index, test) {
     });
 
     test('write 3 ops', function(t) {
-	t.plan(8);
+	t.plan(11);
 
 	index.writeOp(coll, doc, createOp, function(error, result) {
 	    t.error(error, 'write create op');
@@ -100,7 +102,7 @@ module.exports = function(index, test) {
     });
 
     test('getOps bounds', function(t) {
-	t.plan(7);
+	t.plan(10);
 
 	index.getOps(coll, doc, 2, null, function(error, result) {
 	    t.error(error, 'getOps start bounded');

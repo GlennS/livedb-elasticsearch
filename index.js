@@ -352,7 +352,7 @@ module.exports = function(host, index, dontInitializeMappings) {
 					v: op.v,
 					src: op.src,
 					seq: op.seq,
-					timestamp: hit._timestamp
+					timestamp: hit.fields._timestamp
 				    };
 
 				    if (op.meta) {
