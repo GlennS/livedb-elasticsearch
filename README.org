@@ -51,4 +51,9 @@ We do not use ElasticSearch versions for ops, because we want to keep them aroun
 ** Tests
 First install tap-spec, which prettifies the outputs =sudo npm install -g tap-spec=, then run =make tests=.
 
-See [[file:tests.org][tests.org]] for plans for tests to write.
+*** Problems
+I current insert delays:
+ 1. After creating indexes.
+ 2. After inserting objects.
+
+I need to find a better way to handle this.

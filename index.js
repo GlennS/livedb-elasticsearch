@@ -127,7 +127,8 @@ module.exports = function(host, index, dontInitializeMappings) {
 				null,
 				{
 				    type: response._source.type,
-				    data: response._source.data
+				    v: response._version,
+				    data: JSON.parse(response._source.data)
 				}
 			    );
 			}
@@ -204,7 +205,11 @@ module.exports = function(host, index, dontInitializeMappings) {
 			    });
 
 			    results.hits.hits.forEach(function(hit) {
-				resultsDict[hit.coll][hit.doc] = hit._source;
+				resultsDict[hit.coll][hit.doc] = {
+				    type: hit._source.type,
+				    v: hit._version,
+				    data: JSON.parse(hit._source.data)
+				};
 			    });
 			    
 			    callback(
