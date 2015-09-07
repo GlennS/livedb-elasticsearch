@@ -323,6 +323,7 @@ module.exports = function(host, index, dontInitializeMappings) {
 			    	    order: 'asc'
 			    	}
 			    },
+			    fields: ["_timestamp", "_source"],
 			    query: {
 			    	filtered: {
 			    	    filter: {
@@ -350,7 +351,8 @@ module.exports = function(host, index, dontInitializeMappings) {
 				    var result = {
 					v: op.v,
 					src: op.src,
-					seq: op.seq
+					seq: op.seq,
+					timestamp: hit._timestamp
 				    };
 
 				    if (op.meta) {
