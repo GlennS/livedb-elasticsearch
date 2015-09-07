@@ -66,6 +66,11 @@ module.exports = function(elasticClient, index) {
 				    settings: {},
 				    mappings: {
 					snapshot: {
+					    "_timestamp": {
+						"enabled": "true",
+						"store": "yes"
+					    },
+					    
 					    properties: {
 						collection: stringType,
 						doc: stringType,
@@ -76,6 +81,11 @@ module.exports = function(elasticClient, index) {
 					},
 
 					op: {
+					    "_timestamp": {
+						"enabled": "true",
+						"store": "yes"
+					    },
+					    
 					    properties: {
 						collection: stringType,
 						doc: stringType,
