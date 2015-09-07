@@ -407,7 +407,11 @@ module.exports = function(host, index, dontInitializeMappings) {
 	};
 
     if (!dontInitializeMappings) {
-	mappings.ensureCreated();
+	mappings.ensureCreated(function(error, response) {
+	    if (error) {
+		throw new Error(error);
+	    }
+	});
     }
 
     return m;
