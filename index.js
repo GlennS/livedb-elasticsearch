@@ -123,11 +123,12 @@ module.exports = function(host, index) {
 			type: snapshotType,
 			id: makeSnapshotId(collection, doc),
 			version: snapshot.v,
+			versionType: 'external',
 			body: {
 			    collection: collection,
 			    doc: doc,
 			    type: snapshot.type,
-			    data: snapshot.data
+			    data: JSON.stringify(snapshot.data)
 			}
 		    },
 		    callback
@@ -203,13 +204,16 @@ module.exports = function(host, index) {
 		    v: op.v,
 		    src: op.src,
 		    seq: op.seq,
-		    meta: op.meta
+		    meta: JSON.stringify(op.meta)
 		};
 
 		if (op.op) {
-		    body.op = op.op;
+		    body.op = JSON.stringify(op.op);
 		} else if (op.create) {
-		    body.create = op.create;
+		    body.create = {
+			type: op.create.type,
+			data: JSON.stringify(op.create.data)
+		    };
 		    
 		} else if (op.del) {
 		    body.del = op.del;

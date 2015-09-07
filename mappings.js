@@ -22,7 +22,7 @@ module.exports = function(elasticClient, index) {
 
 	arbitraryObjType = {
 	    type: "string",
-	    index: "not_analyzed"
+	    index: "no"
 	};
 
     elasticClient.indices.exists(
@@ -60,7 +60,13 @@ module.exports = function(elasticClient, index) {
 					meta: arbitraryObjType,
 					op: arbitraryObjType,
 					del: boolType,
-					create: arbitraryObjType
+					create: {
+					    type: "object",
+					    properties: {
+						type: stringType,
+						data: arbitraryObjType
+					    }
+					}
 				    }
 				}
 			    }
