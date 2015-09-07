@@ -167,7 +167,25 @@ module.exports = function(host, index) {
 			    }
 			}
 		    },
-		    searchCallback(callback)
+		    function(error, results) {
+			if (error) {
+			    callback(error, results);
+			} else {
+			    var resultsDict = {};
+			    Object.keys(requests).forEach(function(coll) {
+				resultsDict[coll] = {};
+			    });
+
+			    results.hits.hits.forEach(function(hit) {
+				resultsDict[hit.coll][hit.doc] = hit._source;
+			    });
+			    
+			    callback(
+				null,
+				resultsDict
+			    );
+			}
+		    }
 		);
 	    },
 
