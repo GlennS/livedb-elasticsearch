@@ -73,7 +73,14 @@ module.exports = function(elasticClient, index) {
 					    
 					    properties: {
 						collection: stringType,
-						doc: stringType,
+						doc: {
+						    type: "string"
+						},
+						doc_raw: {
+						    type: "string",
+						    index: "not_analyzed",
+						    field: 'doc'
+						},						
 						// This is the ot type, see [https://github.com/ottypes]
 						type: stringType,
 						data: arbitraryObjType,

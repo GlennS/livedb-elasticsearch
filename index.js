@@ -135,6 +135,7 @@ module.exports = function(host, index, dontInitializeMappings) {
 			body: {
 			    collection: collection,
 			    doc: doc,
+			    doc_raw: doc,
 			    type: snapshot.type,
 			    data: JSON.stringify(snapshot.data),
 			    suggest: doc
@@ -360,42 +361,74 @@ module.exports = function(host, index, dontInitializeMappings) {
 	     Search for a document with a title matching our query.
 	     */
 	    titleSearch: function(collection, searchTerm, callback) {
-		client.suggest(
-		    {
-			index: index,
-			type: snapshotType,
-			body: {
-			    titleSuggest: {
-				text: searchTerm,
-				completion: {
-				    field: 'suggest',
-				    fuzzy: {
-					fuzziness: 2
-				    },
-				    context: {
-					collection_context: collection
+		if (searchTerm) {
+		    
+		    client.suggest(
+			{
+			    index: index,
+			    type: snapshotType,
+			    body: {
+				titleSuggest: {
+				    text: searchTerm,
+				    completion: {
+					field: 'suggest',
+					fuzzy: {
+					    fuzziness: 2
+					},
+					context: {
+					    collection_context: collection
+					}
 				    }
 				}
 			    }
-			}
-		    },
-		    function(error, response) {
-			if (error) {
-			    callback(error, null);
-			} else {
-			    if (response.titleSuggest && response.titleSuggest.length) {
-				callback(
-				    null,
-				    response.titleSuggest[0].options.map(function(option) {
-					return option.text;
-				    })
-				);
+			},
+			function(error, response) {
+			    if (error) {
+				callback(error, null);
 			    } else {
-				callback(null, []);
+				if (response.titleSuggest && response.titleSuggest.length) {
+				    callback(
+					null,
+					response.titleSuggest[0].options.map(function(option) {
+					    return option.text;
+					})
+				    );
+				} else {
+				    callback(null, []);
+				}
 			    }
 			}
-		    }
-		);
+		    );
+		} else {
+		    client.search(
+			{
+			    index: index,
+			    type: snapshotType,
+			    body: {
+				fields: ['doc_raw'],
+				sort: {
+				    doc_raw: {
+				    	order: 'asc'
+				    }
+				},
+				query: {
+				    filtered: {
+					filter: matchColl(collection)
+				    }
+				}
+			    }
+			},
+			function(error, response) {
+			    if (error) {
+				callback(error, null);
+			    } else {
+				callback(null, response.hits.hits.map(function(hit) {
+				    return hit.fields.doc_raw[0];
+				}));
+			    }
+			}
+		    );
+		}
 	    },
 
 	    ensureMappingsCreated: mappings.ensureCreated,

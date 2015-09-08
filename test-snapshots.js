@@ -3,7 +3,8 @@
 /*global module, require, setTimeout*/
 
 var coll = "coll",
-    doc = "document";
+    doc = "document",
+    doc2 = 'other document';
 
 module.exports = function(index, test) {
     test('getSnapshot missing', function(t) {
@@ -37,17 +38,24 @@ module.exports = function(index, test) {
 	}
     };
 
-    test('writeSnapshot', function(t) {
-	t.plan(2);
+    test('writeSnapshots', function(t) {
+	/*
+	 We schedule a delay after writing to allow time for index to pick this up.
+	 */
+	
+	t.plan(4);
 	
 	index.writeSnapshot(coll, doc, snapshot, function(error, result) {
-
-	    /*
-	    Delay after writing to allow time for index to pick this up.
-	    */
 	    setTimeout(function() {
-		t.error(error, 'writeSnapshot');
-		t.true(result.created, 'snapshot created in index');
+		t.error(error, 'writeSnapshot 1');
+		t.true(result.created, 'document snapshot created in index');
+	    }, 1000);
+	});
+
+	index.writeSnapshot(coll, doc2, snapshot, function(error, result) {
+	    setTimeout(function() {
+		t.error(error, 'writeSnapshot 2');
+		t.true(result.created, 'other document snapshot created in index');
 	    }, 1000);
 	});
     });
@@ -90,10 +98,10 @@ module.exports = function(index, test) {
 
     test('empty titleSearch', function(t) {
 	t.plan(2);
-	
+
 	index.titleSearch(coll, '', function(error, response) {
 	    t.error(error, 'titleSearch');
-	    t.deepEqual(response, [], "shouldn't have found any suggestions");
+	    t.deepEqual(response, [doc, doc2], "should have suggested all documents ordered by title");
 	});
     });
 
