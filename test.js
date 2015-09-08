@@ -2,7 +2,7 @@
 
 /*global module, require, setTimeout*/
 
-var test = require("tape-catch"),
+var test = require("tape"),
     indexFactory = require("./index.js"),
     index = indexFactory(null, 'test', true),
 
