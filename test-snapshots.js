@@ -73,7 +73,7 @@ module.exports = function(index, test) {
     test('titleSearch', function(t) {
 	t.plan(2);
 	
-	index.titleSearch(coll, 'documen', function(error, response) {
+	index.titleSearch(coll, 'doc', function(error, response) {
 	    t.error(error, 'titleSearch');
 	    t.deepEqual(response, [doc], 'should have found our snapshot title as a suggestion');
 	});
@@ -95,5 +95,14 @@ module.exports = function(index, test) {
 	    t.error(error, 'titleSearch');
 	    t.deepEqual(response, [], "shouldn't have found any suggestions");
 	});
+    });
+
+    test('wrong collection titleSearch', function(t) {
+	t.plan(2);
+
+	index.titleSearch('nonsense', 'documen', function(error, response) {
+	    t.error(error, 'titleSearch');
+	    t.deepEqual(response, [], "shouldn't have found any suggestions");
+	});	
     });
 };

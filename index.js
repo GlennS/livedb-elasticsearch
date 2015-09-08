@@ -136,7 +136,8 @@ module.exports = function(host, index, dontInitializeMappings) {
 			    collection: collection,
 			    doc: doc,
 			    type: snapshot.type,
-			    data: JSON.stringify(snapshot.data)
+			    data: JSON.stringify(snapshot.data),
+			    suggest: doc
 			}
 		    },
 		    callback
@@ -366,8 +367,14 @@ module.exports = function(host, index, dontInitializeMappings) {
 			body: {
 			    titleSuggest: {
 				text: searchTerm,
-				term: {
-				    field: 'doc'
+				completion: {
+				    field: 'suggest',
+				    fuzzy: {
+					fuzziness: 2
+				    },
+				    context: {
+					collection_context: collection
+				    }
 				}
 			    }
 			}

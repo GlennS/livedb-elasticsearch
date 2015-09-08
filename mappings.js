@@ -76,7 +76,16 @@ module.exports = function(elasticClient, index) {
 						doc: stringType,
 						// This is the ot type, see [https://github.com/ottypes]
 						type: stringType,
-						data: arbitraryObjType
+						data: arbitraryObjType,
+						suggest: {
+						    type: 'completion',
+						    context: {
+							collection_context: {
+							    type: 'category',
+							    path: 'collection'
+							}
+						    }
+						}
 					    }
 					},
 
