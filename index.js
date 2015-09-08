@@ -215,7 +215,7 @@ module.exports = function(host, index, dontInitializeMappings) {
 			data: JSON.stringify(op.create.data)
 		    };
 		    
-		} else if (op.del) {
+		} else if (op.del !== null && op.del !== undefined && op.del !== '') {
 		    body.del = op.del;
 		    
 		} else {
@@ -343,7 +343,7 @@ module.exports = function(host, index, dontInitializeMappings) {
 					};
 				    }
 
-				    if (op.del) {
+				    if (op.del !== null && op.del !== undefined && op.del !== '') {
 					result.del = op.del;
 				    }
 
