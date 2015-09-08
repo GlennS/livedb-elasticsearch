@@ -61,21 +61,6 @@ module.exports = function(host, index, dontInitializeMappings) {
 	    return filter;
 	},
 
-	searchCallback = function(callback) {
-	    return function(error, response) {
-		if (error) {
-		    callback(error, null);
-		} else {
-		    callback(
-			null,
-			response.hits.hits.map(function(hit) {
-			    return hit._source;
-			})
-		    );
-		}
-	    };
-	},
-
 	m = {
 	    closed: false,
 	    close: function() {
@@ -374,24 +359,31 @@ module.exports = function(host, index, dontInitializeMappings) {
 	     Search for a document with a title matching our query.
 	     */
 	    titleSearch: function(collection, searchTerm, callback) {
-		client.search(
+		client.suggest(
 		    {
 			index: index,
 			type: snapshotType,
 			body: {
-			    query: {
-				filtered: {
-				    filter: matchColl(collection),
-				    query: {
-					match: {
-					    doc: searchTerm
-					}
-				    }
+			    titleSuggest: {
+				text: searchTerm,
+				term: {
+				    field: 'doc'
 				}
 			    }
 			}
 		    },
-		    searchCallback(callback)
+		    function(error, response) {
+			if (error) {
+			    callback(error, null);
+			} else {
+			    callback(
+				null,
+				response.titleSuggest[0].options.map(function(option) {
+				    return option.text;
+				})
+			    );
+			}
+		    }
 		);
 	    },
 

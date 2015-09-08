@@ -3,7 +3,7 @@
 /*global module, require, setTimeout*/
 
 var coll = "coll",
-    doc = "doc";
+    doc = "document";
 
 module.exports = function(index, test) {
     test('getSnapshot missing', function(t) {
@@ -66,7 +66,25 @@ module.exports = function(index, test) {
 
 	index.bulkGetSnapshot({coll: [doc]}, function(error, result) {
 	    t.error(error, 'bulkGetSnapshot');
-	    t.deepEquals(result, {coll: {doc: snapshot}}, 'should contain an entry for the collection we asked for, containing the snapshot we stored');
+	    t.deepEquals(result, {coll: {document: snapshot}}, 'should contain an entry for the collection we asked for, containing the snapshot we stored');
+	});
+    });
+
+    test('titleSearch', function(t) {
+	t.plan(2);
+	
+	index.titleSearch(coll, 'documen', function(error, response) {
+	    t.error(error, 'titleSearch');
+	    t.deepEqual(response, [doc], 'should have found our snapshot title as a suggestion');
+	});
+    });
+
+    test('bad titleSearch', function(t) {
+	t.plan(2);
+
+	index.titleSearch(coll, 'nonsense', function(error, response) {
+	    t.error(error, 'titleSearch');
+	    t.deepEqual(response, [], "shouldn't have found any suggestions");
 	});
     });
 };
