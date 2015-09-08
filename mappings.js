@@ -12,6 +12,11 @@ module.exports = function(elasticClient, index) {
 	type: "string"
     },
 
+	rawStringType = {
+	    type: "string",
+	    index: "not_analyzed"
+	},
+
 	intType = {
 	    type: "long"
 	},
@@ -72,7 +77,7 @@ module.exports = function(elasticClient, index) {
 					    },
 					    
 					    properties: {
-						collection: stringType,
+						collection: rawStringType,
 						doc: {
 						    type: "string"
 						},
@@ -103,7 +108,7 @@ module.exports = function(elasticClient, index) {
 					    },
 					    
 					    properties: {
-						collection: stringType,
+						collection: rawStringType,
 						doc: stringType,
 						v: intType,
 						src: arbitraryObjType,
