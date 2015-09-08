@@ -24,7 +24,7 @@ module.exports = function(index, test) {
 	    },
 	    function(error, result) {
 		t.error(error, 'bulkGetSnapshot');
-		t.deepEquals(result, {coll: []}, 'Should return names of all collections queries for, but not have found any documents.');
+		t.deepEquals(result, {coll: {}}, 'Should return names of all collections queries for, but not have found any documents.');
 	    }
 	);
     });
@@ -64,9 +64,9 @@ module.exports = function(index, test) {
     test('bulkGetSnapshot', function(t) {
 	t.plan(2);
 
-	index.getSnapshot({coll: [doc]}, function(error, result) {
+	index.bulkGetSnapshot({coll: [doc]}, function(error, result) {
 	    t.error(error, 'bulkGetSnapshot');
-	    t.deepEquals(result, {coll: [snapshot]}, 'should contain an entry for the collection we asked for, containing the snapshot we stored');
+	    t.deepEquals(result, {coll: {doc: snapshot}}, 'should contain an entry for the collection we asked for, containing the snapshot we stored');
 	});
     });
 };

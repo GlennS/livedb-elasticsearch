@@ -164,35 +164,18 @@ module.exports = function(host, index, dontInitializeMappings) {
 	     requests is a map of collection => [document names]
 	     */
 	    bulkGetSnapshot: function(requests, callback) {
-		var criteria = Object.keys(requests).map(function(coll) {
+		var docs = Object.keys(requests).map(function(coll) {
 		    return {
-			bool: {
-			    must: [
-				matchColl(coll),
-				{
-				    terms: {
-					doc: requests[coll]
-				    }
-				}
-			    ]
-			}
+			"_id": makeSnapshotId(coll, requests[coll])
 		    };
 		});
 		
-		client.search(
+		client.mget(
 		    {
 			index: index,
 			type: snapshotType,
 			body: {
-			    query: {
-				filtered: {
-				    filter: {
-					bool: {
-					    should: criteria
-					}
-				    }
-				}
-			    }
+			    docs: docs
 			}
 		    },
 		    function(error, results) {
@@ -204,12 +187,15 @@ module.exports = function(host, index, dontInitializeMappings) {
 				resultsDict[coll] = {};
 			    });
 
-			    results.hits.hits.forEach(function(hit) {
-				resultsDict[hit.coll][hit.doc] = {
-				    type: hit._source.type,
-				    v: hit._version,
-				    data: JSON.parse(hit._source.data)
-				};
+			    results.docs.forEach(function(doc) {
+				if (doc.found) {
+
+				    resultsDict[doc._source.collection][doc._source.doc] = {
+					type: doc._source.type,
+					v: doc._version,
+					data: JSON.parse(doc._source.data)
+				    };
+				}
 			    });
 			    
 			    callback(
