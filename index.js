@@ -376,12 +376,16 @@ module.exports = function(host, index, dontInitializeMappings) {
 			if (error) {
 			    callback(error, null);
 			} else {
-			    callback(
-				null,
-				response.titleSuggest[0].options.map(function(option) {
-				    return option.text;
-				})
-			    );
+			    if (response.titleSuggest && response.titleSuggest.length) {
+				callback(
+				    null,
+				    response.titleSuggest[0].options.map(function(option) {
+					return option.text;
+				    })
+				);
+			    } else {
+				callback(null, []);
+			    }
 			}
 		    }
 		);

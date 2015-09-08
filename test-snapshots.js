@@ -87,4 +87,13 @@ module.exports = function(index, test) {
 	    t.deepEqual(response, [], "shouldn't have found any suggestions");
 	});
     });
+
+    test('empty titleSearch', function(t) {
+	t.plan(2);
+	
+	index.titleSearch(coll, '', function(error, response) {
+	    t.error(error, 'titleSearch');
+	    t.deepEqual(response, [], "shouldn't have found any suggestions");
+	});
+    });
 };
