@@ -1,6 +1,6 @@
 "use strict";
 
-/*global module, require*/
+/*global module, require, setTimeout*/
 
 var elasticSearch = require('elasticsearch'),
     apiVersion = "1.7",
@@ -435,13 +435,22 @@ module.exports = function(host, index, dontInitializeMappings) {
 	    deleteMappings: mappings.delete
 	};
 
-    if (!dontInitializeMappings) {
-	mappings.ensureCreated(function(error, response) {
-	    if (error) {
-		throw new Error(error);
+	(function initializeMappings() {
+	    if (!dontInitializeMappings) {
+
+		mappings.ensureCreated(function(error, response) {
+		    if (error) {
+			console.error("Failed to setup mappings, retrying", error);
+			setTimeout(
+			    initializeMappings,
+			    1000
+			);
+		    } else {
+			dontInitializeMappings = true;
+		    }
+		});
 	    }
-	});
-    }
+	}());
 
     return m;
 };
