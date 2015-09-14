@@ -113,7 +113,7 @@ module.exports = function(host, index, dontInitializeMappings) {
 				{
 				    type: response._source.type,
 				    v: response._version,
-				    data: JSON.parse(response._source.data)
+				    data: response._source.data === undefined ? null : JSON.parse(response._source.data)
 				}
 			    );
 			}
@@ -125,6 +125,21 @@ module.exports = function(host, index, dontInitializeMappings) {
 	     Write a snapshot to the database.
 	     */
 	    writeSnapshot: function(collection, doc, snapshot, callback) {
+		var body =  {
+		    collection: collection,
+		    doc: doc,
+		    doc_raw: doc,
+		    type: snapshot.type,
+		    deleted: snapshot.data === undefined ? 'true' : 'false',
+		    suggest: {
+			input: doc
+		    }
+		};
+
+		if (snapshot.data) {
+		    body.data = JSON.stringify(snapshot.data);
+		}
+		
 		client.index(
 		    {
 			index: index,
@@ -132,14 +147,7 @@ module.exports = function(host, index, dontInitializeMappings) {
 			id: makeSnapshotId(collection, doc),
 			version: snapshot.v,
 			versionType: 'external',
-			body: {
-			    collection: collection,
-			    doc: doc,
-			    doc_raw: doc,
-			    type: snapshot.type,
-			    data: JSON.stringify(snapshot.data),
-			    suggest: doc
-			}
+			body: body
 		    },
 		    callback
 		);
@@ -180,7 +188,7 @@ module.exports = function(host, index, dontInitializeMappings) {
 				    resultsDict[doc._source.collection][doc._source.doc] = {
 					type: doc._source.type,
 					v: doc._version,
-					data: JSON.parse(doc._source.data)
+					data: doc._source.data === undefined ? null : JSON.parse(doc._source.data)					
 				    };
 				}
 			    });
@@ -376,7 +384,8 @@ module.exports = function(host, index, dontInitializeMappings) {
 					    fuzziness: 2
 					},
 					context: {
-					    collection_context: collection
+					    collection: collection,
+					    deleted: 'false'
 					}
 				    }
 				}
@@ -413,7 +422,20 @@ module.exports = function(host, index, dontInitializeMappings) {
 				},
 				query: {
 				    filtered: {
-					filter: matchColl(collection)
+					filter: {
+					    bool: {
+						must: [
+						    matchColl(collection)
+						],
+						must_not: [
+						    {
+						    	term: {
+						    	    deleted: true
+						    	}
+						    }
+						]
+					    }
+					}
 				    }
 				}
 			    }

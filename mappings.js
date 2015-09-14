@@ -92,9 +92,13 @@ module.exports = function(elasticClient, index) {
 						suggest: {
 						    type: 'completion',
 						    context: {
-							collection_context: {
+							collection: {
 							    type: 'category',
 							    path: 'collection'
+							},
+							deleted: {
+							    type: 'category',
+							    path: 'deleted'
 							}
 						    }
 						}

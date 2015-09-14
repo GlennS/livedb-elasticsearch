@@ -113,4 +113,24 @@ module.exports = function(index, test) {
 	    t.deepEqual(response, [], "shouldn't have found any suggestions");
 	});	
     });
+
+    var deletedSnapshot = {
+	v: 2
+    };
+    
+    test('search ignores deleted', function(t) {
+	t.plan(4);
+
+	index.writeSnapshot(coll, doc, deletedSnapshot, function(error, result) {
+	    setTimeout(function() {
+		t.error(error, 'writeSnapshot deleted');
+		t.false(result.created, 'document existed previously - now updated with deleted version');
+
+		index.titleSearch(coll, 'documen', function(error, response) {
+		    t.error(error, 'titleSearch');
+		    t.deepEqual(response, [], "shouldn't have found any suggestions");
+		});
+	    }, 1000);
+	});
+    });
 };
