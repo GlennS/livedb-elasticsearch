@@ -89,6 +89,10 @@ module.exports = function(elasticClient, index) {
 						// This is the ot type, see [https://github.com/ottypes]
 						type: stringType,
 						data: arbitraryObjType,
+						/*
+						 Deleted would make more sense as a boolean, but it has to be a string so that the suggester can use it.
+						 */
+						deleted: stringType,
 						suggest: {
 						    type: 'completion',
 						    context: {
