@@ -1,13 +1,13 @@
 "use strict";
 
-/*global module, require*/
+/*global module, require, setTimeout*/
 
 var stringType = "string",
     intType = "long",
     booleanType = "boolean",
     dataType = "string";
 
-module.exports = function(elasticClient, index) {
+module.exports = function(elasticClient, index, extraMappings) {
     var stringType = {
 	type: "string"
     },
@@ -28,10 +28,9 @@ module.exports = function(elasticClient, index) {
 	arbitraryObjType = {
 	    type: "object",
 	    enabled: false
-	};
+	},
 
-    return {
-	delete: function(callback) {
+	deleteFun = function(callback) {
 	    elasticClient.indices.exists(
 		{
 		    index: index
@@ -53,6 +52,118 @@ module.exports = function(elasticClient, index) {
 	    );
 	},
 
+	snapshotMappings = {
+	    "_timestamp": {
+		"enabled": "true",
+		"store": "yes"
+	    },
+	    
+	    properties: {
+		collection: rawStringType,
+		doc: {
+		    type: "string",
+		    fields: {
+			raw: {
+			    type: "string",
+			    index: "not_analyzed"
+			}
+		    }
+		},
+		
+		// This is the ot type, see [https://github.com/ottypes]
+		type: stringType,
+		data: {
+		    type: 'object',
+		    dynamic: false
+		},
+		/*
+		 Deleted would make more sense as a boolean, but it has to be a string so that the suggester can use it.
+		 */
+		deleted: stringType,
+		suggest: {
+		    type: 'completion',
+		    context: {
+			collection: {
+			    type: 'category',
+			    path: 'collection'
+			},
+			deleted: {
+			    type: 'category',
+			    path: 'deleted'
+			}
+		    }
+		}
+	    }
+	},
+
+	opMappings = {
+	    "_timestamp": {
+		"enabled": "true",
+		"store": "yes"
+	    },
+	    
+	    properties: {
+		collection: rawStringType,
+		doc: stringType,
+		v: intType,
+		src: arbitraryObjType,
+		seq: intType,
+		meta: arbitraryObjType,
+		op: arbitraryObjType,
+		del: boolType,
+		create: {
+		    type: "object",
+		    properties: {
+			type: stringType,
+			data: arbitraryObjType
+		    }
+		}
+	    }
+	},
+
+	create = function(callback) {
+	    elasticClient.indices.create(
+		{
+		    index: index,
+		    body: {
+			settings: {},
+			mappings: {
+			    snapshot: snapshotMappings,
+			    op: opMappings
+			}
+		    }
+		},
+		function(error, response) {
+		    if (error) {
+			callback(error, response);
+		    } else {
+			/*
+			 We need to wait a little while after creating an index before it will be available.
+			 */
+			setTimeout(
+			    function() {
+				callback(error, response);
+			    },
+			    1000
+			);
+		    }
+		}
+	    );
+	};
+
+    if (extraMappings) {
+    	if (extraMappings.snapshotData) {
+	    snapshotMappings.properties.data.properties = {};
+
+    	    Object.keys(extraMappings.snapshotData).forEach(function(k) {
+    		snapshotMappings.properties.data.properties[k] = extraMappings.snapshotData[k];
+    	    });
+    	}
+    }
+
+    return {
+	delete: deleteFun,
+
 	ensureCreated: function(callback) {
 	    elasticClient.indices.exists(
 		{
@@ -63,86 +174,23 @@ module.exports = function(elasticClient, index) {
 			callback(error, response);
 			
 		    } else if (!response) {
+			create(callback);
 			
-			elasticClient.indices.create(
-			    {
-				index: index,
-				body: {
-				    settings: {},
-				    mappings: {
-					snapshot: {
-					    "_timestamp": {
-						"enabled": "true",
-						"store": "yes"
-					    },
-					    
-					    properties: {
-						collection: rawStringType,
-						doc: {
-						    type: "string"
-						},
-						doc_raw: {
-						    type: "string",
-						    index: "not_analyzed",
-						    field: 'doc'
-						},						
-						// This is the ot type, see [https://github.com/ottypes]
-						type: stringType,
-						data: arbitraryObjType,
-						/*
-						 Deleted would make more sense as a boolean, but it has to be a string so that the suggester can use it.
-						 */
-						deleted: stringType,
-						suggest: {
-						    type: 'completion',
-						    context: {
-							collection: {
-							    type: 'category',
-							    path: 'collection'
-							},
-							deleted: {
-							    type: 'category',
-							    path: 'deleted'
-							}
-						    }
-						}
-					    }
-					},
-
-					op: {
-					    "_timestamp": {
-						"enabled": "true",
-						"store": "yes"
-					    },
-					    
-					    properties: {
-						collection: rawStringType,
-						doc: stringType,
-						v: intType,
-						src: arbitraryObjType,
-						seq: intType,
-						meta: arbitraryObjType,
-						op: arbitraryObjType,
-						del: boolType,
-						create: {
-						    type: "object",
-						    properties: {
-							type: stringType,
-							data: arbitraryObjType
-						    }
-						}
-					    }
-					}
-				    }
-				}
-			    },
-			    callback
-			);
 		    } else {
 			callback(null, false);
 		    }
 		}
 	    );
+	},
+
+	deleteThenCreate: function(callback) {
+	    deleteFun(function(error, response) {
+		if (error) {
+		    callback(error, response);
+		} else {
+		    create(callback);
+		}
+	    });
 	}
     };
 };

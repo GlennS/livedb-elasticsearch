@@ -10,8 +10,9 @@ var elasticSearch = require('elasticsearch'),
 
     mappingsFactory = require("./mappings.js");
 
-module.exports = function(host, index, dontInitializeMappings) {
+module.exports = function(host, index, config) {
     index = index || 'livedb';
+    config = config || {};
 
     var client = new elasticSearch.Client({
 	host: host || 'http://localhost:9200',
@@ -19,7 +20,7 @@ module.exports = function(host, index, dontInitializeMappings) {
 	suggestCompression: true
     }),
 
-	mappings = mappingsFactory(client, index),
+	mappings = mappingsFactory(client, index, config.extraMappings),
 
 	makeSnapshotId = function(collection, doc) {
 	    return collection + "-" + doc + "-snapshot";
@@ -135,7 +136,6 @@ module.exports = function(host, index, dontInitializeMappings) {
 			body: {
 			    collection: collection,
 			    doc: doc,
-			    doc_raw: doc,
 			    type: snapshot.type,
 			    deleted: snapshot.data === undefined ? 'true' : 'false',
 			    suggest: {
@@ -409,9 +409,9 @@ module.exports = function(host, index, dontInitializeMappings) {
 			    index: index,
 			    type: snapshotType,
 			    body: {
-				fields: ['doc_raw'],
+				fields: ['doc.raw'],
 				sort: {
-				    doc_raw: {
+				    'doc.raw': {
 				    	order: 'asc'
 				    }
 				},
@@ -440,7 +440,7 @@ module.exports = function(host, index, dontInitializeMappings) {
 				callback(error, null);
 			    } else {
 				callback(null, response.hits.hits.map(function(hit) {
-				    return hit.fields.doc_raw[0];
+				    return hit.fields['doc.raw'][0];
 				}));
 			    }
 			}
@@ -449,25 +449,11 @@ module.exports = function(host, index, dontInitializeMappings) {
 	    },
 
 	    ensureMappingsCreated: mappings.ensureCreated,
-	    deleteMappings: mappings.delete
+	    deleteMappings: mappings.delete,
+	    deleteThenCreateMappings: mappings.deleteThenCreate,
+
+	    client: client
 	};
-
-	(function initializeMappings() {
-	    if (!dontInitializeMappings) {
-
-		mappings.ensureCreated(function(error, response) {
-		    if (error) {
-			console.error("Failed to setup mappings, retrying", error);
-			setTimeout(
-			    initializeMappings,
-			    1000
-			);
-		    } else {
-			dontInitializeMappings = true;
-		    }
-		});
-	    }
-	}());
 
     return m;
 };

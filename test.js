@@ -4,10 +4,12 @@
 
 var test = require("tape"),
     indexFactory = require("./index.js"),
-    index = indexFactory(null, 'test', true),
+    indexName = 'test',
+    index = indexFactory(null, indexName),
 
     opsTestFactory = require("./test-ops.js"),
-    snapshotTestFactory = require("./test-snapshots.js");
+    snapshotTestFactory = require("./test-snapshots.js"),
+    extraMappingsTestFactory = require('./test-extra-mappings.js');
 
 test('ElasticSearch exists', function(t) {
     t.plan(2);
@@ -22,22 +24,18 @@ test('ElasticSearch exists', function(t) {
  Run this before any tests which depend on the index.
  */
 test('index delete then create', function(t) {
-	t.plan(4);
+    t.plan(3);
     
-    index.deleteMappings(function(error, result) {
-	t.error(error, 'delete indexes');
-	
-	index.ensureMappingsCreated(function(error, result) {
-	    t.error(error, 'create indexes');
-	    t.true(result, 'Mappings should be created.');
-	    
-	    setTimeout(
-		function() {
-		    t.pass("Delay after index creation.");
-		},
-		100
-	    );
-	});
+    index.deleteThenCreateMappings(function(error, result) {
+	t.error(error, 'delete then create indexes');
+	t.true(result, 'Mappings should be created.');
+
+	setTimeout(
+	    function() {
+		t.pass("Delay after index creation.");
+	    },
+	    100
+	);	
     });
 });
 
@@ -45,7 +43,7 @@ opsTestFactory(index, test);
 snapshotTestFactory(index, test);
 
 /*
- Run this last.
+ Run this after the ops and snapshot tests - cleans up after them.
  */
 test('index create then delete', function(t) {
     t.plan(3);
@@ -60,3 +58,7 @@ test('index create then delete', function(t) {
     });
 });
 
+/*
+ This test is entirely standalone since it needs to make its own mappings.
+*/
+extraMappingsTestFactory(indexFactory, indexName, test);
