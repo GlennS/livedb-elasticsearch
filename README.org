@@ -22,7 +22,7 @@ We make a single index in ElasticSearch. Snapshots and operations are stored as 
                   snapshotData: {
                       'some-property': {
                           type: 'string',
-                          index: 'not-analyzed'
+                          index: 'not_analyzed'
                       }
                   }
               }
