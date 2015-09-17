@@ -26,8 +26,8 @@ module.exports = function(elasticClient, index) {
 	},
 
 	arbitraryObjType = {
-	    type: "string",
-	    index: "no"
+	    type: "object",
+	    enabled: false
 	};
 
     return {

@@ -113,7 +113,7 @@ module.exports = function(host, index, dontInitializeMappings) {
 				{
 				    type: response._source.type,
 				    v: response._version,
-				    data: response._source.data === undefined ? null : JSON.parse(response._source.data)
+				    data: response._source.data
 				}
 			    );
 			}
@@ -125,21 +125,6 @@ module.exports = function(host, index, dontInitializeMappings) {
 	     Write a snapshot to the database.
 	     */
 	    writeSnapshot: function(collection, doc, snapshot, callback) {
-		var body =  {
-		    collection: collection,
-		    doc: doc,
-		    doc_raw: doc,
-		    type: snapshot.type,
-		    deleted: snapshot.data === undefined ? 'true' : 'false',
-		    suggest: {
-			input: doc
-		    }
-		};
-
-		if (snapshot.data) {
-		    body.data = JSON.stringify(snapshot.data);
-		}
-		
 		client.index(
 		    {
 			index: index,
@@ -147,7 +132,17 @@ module.exports = function(host, index, dontInitializeMappings) {
 			id: makeSnapshotId(collection, doc),
 			version: snapshot.v,
 			versionType: 'external',
-			body: body
+			body: {
+			    collection: collection,
+			    doc: doc,
+			    doc_raw: doc,
+			    type: snapshot.type,
+			    deleted: snapshot.data === undefined ? 'true' : 'false',
+			    suggest: {
+				input: doc
+			    },
+			    data: snapshot.data
+			}
 		    },
 		    callback
 		);
@@ -188,7 +183,7 @@ module.exports = function(host, index, dontInitializeMappings) {
 				    resultsDict[doc._source.collection][doc._source.doc] = {
 					type: doc._source.type,
 					v: doc._version,
-					data: doc._source.data === undefined ? null : JSON.parse(doc._source.data)					
+					data: doc._source.data
 				    };
 				}
 			    });
@@ -212,15 +207,15 @@ module.exports = function(host, index, dontInitializeMappings) {
 		    v: op.v,
 		    src: op.src,
 		    seq: op.seq,
-		    meta: JSON.stringify(op.meta)
+		    meta: op.meta
 		};
 
 		if (op.op) {
-		    body.op = JSON.stringify(op.op);
+		    body.op = op.op;
 		} else if (op.create) {
 		    body.create = {
 			type: op.create.type,
-			data: JSON.stringify(op.create.data)
+			data: op.create.data
 		    };
 		    
 		} else if (op.del !== null && op.del !== undefined && op.del !== '') {
@@ -337,17 +332,17 @@ module.exports = function(host, index, dontInitializeMappings) {
 				    };
 
 				    if (op.meta) {
-					result.meta = JSON.parse(op.meta);
+					result.meta = op.meta;
 				    }
 
 				    if (op.op) {
-					result.op = JSON.parse(op.op);
+					result.op = op.op;
 				    }
 
 				    if (op.create) {
 					result.create = {
 					    type: op.create.type,
-					    data: JSON.parse(op.create.data)
+					    data: op.create.data
 					};
 				    }
 

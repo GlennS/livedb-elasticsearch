@@ -2,9 +2,10 @@
 
 /*global module, require, setTimeout*/
 
-var coll = "coll",
-    doc = "document",
-    doc2 = 'other document';
+var coll = 'coll',
+    doc = 'document',
+    doc2 = 'other document',
+    doc3 = 'yes another document';
 
 module.exports = function(index, test) {
     test('getSnapshot missing', function(t) {
@@ -131,6 +132,24 @@ module.exports = function(index, test) {
 		    t.deepEqual(response, [], "shouldn't have found any suggestions");
 		});
 	    }, 1000);
+	});
+    });
+
+    var snapshotWithDifferentFields = {
+	v: 1,
+	type: "http://sharejs.org/types/JSONv0",
+	data: {
+	    otherField: 'some other field',
+	    text: 5
+	}
+    };
+
+    test('accepts snapshots containing arbitrary fields inside data', function(t) {
+	t.plan(2);
+
+	index.writeSnapshot(coll, doc3, snapshotWithDifferentFields, function(error, result) {
+	    t.error(error, 'writeSnapshot with different data fields');
+	    t.true(result.created, 'document was created');
 	});
     });
 };
