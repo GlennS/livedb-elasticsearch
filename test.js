@@ -29,13 +29,6 @@ test('index delete then create', function(t) {
     index.deleteThenCreateMappings(function(error, result) {
 	t.error(error, 'delete then create indexes');
 	t.true(result, 'Mappings should be created.');
-
-	setTimeout(
-	    function() {
-		t.pass("Delay after index creation.");
-	    },
-	    100
-	);	
     });
 });
 
