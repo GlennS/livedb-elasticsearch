@@ -24,7 +24,7 @@ test('ElasticSearch exists', function(t) {
  Run this before any tests which depend on the index.
  */
 test('index delete then create', function(t) {
-    t.plan(3);
+    t.plan(2);
     
     index.deleteThenCreateMappings(function(error, result) {
 	t.error(error, 'delete then create indexes');
